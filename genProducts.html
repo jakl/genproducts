@@ -2,17 +2,21 @@
 <body>
 <script type="text/javascript">
 <!--
+const titleRow = 'H,Product SKU,Product Name,Vendor Name,Thumbnail Image Filename,Large Image Filename,<Reserved>,'
+    +'Description,Fabric,Origin,Price,Sale Price,Tax Code,Defining Attribute 1,Defining Attribute 2,Defining Attribute 3,'
+    +'Product Category Name,Item SKU,Parent SKU,'
+    +'Defining Attribute 1,Defining Attribute 2,Defining Attribute 3,Visibility Indicator,Status,Availability Date';
 var count = 0;
 function addRow(divName){
           var newdiv = document.createElement('div');
-          newdiv.innerHTML = "<br />";
-          newdiv.innerHTML += "<input type='text' id='name"+count+"'>";
-          newdiv.innerHTML += "<input type='text' id='brand"+count+"'>";
-          newdiv.innerHTML += "<input type='text' id='price"+count+"'>";
-          newdiv.innerHTML += "<input type='text' id='number"+count+"'>";
-          newdiv.innerHTML += "<input type='text' id='category"+count+"'>";
-          newdiv.innerHTML += "<input type='text' id='att1-"+count+"'>";
-          newdiv.innerHTML += "<input type='text' id='att2-"+count+"'>";
+          newdiv.innerHTML = "<br />"
+          + "<input type='text' id='name"+count+"'>"
+          + "<input type='text' id='brand"+count+"'>"
+          + "<input type='text' id='price"+count+"'>"
+          + "<input type='text' id='number"+count+"'>"
+          + "<input type='text' id='category"+count+"'>"
+          + "<input type='text' id='att1-"+count+"'>"
+          + "<input type='text' id='att2-"+count+"'>";
           document.getElementById(divName).appendChild(newdiv);
           count++;
 }
@@ -40,13 +44,33 @@ for(p in products){
 	 //+ products[p].number + " " + products[p].atts + "<br />");
 }
 
+function getProductRow(name, brand, price, number, cat, att1, att2){
+	return 'P,' + number + ',' + name + ',' + brand + ','
+	       +'T' + number + '.jpg,' //Thumbnail Image Filename
+	       +number + '.jpg,'       //Large Image Filename
+	       +'L' + number + '.jpg,' //<Reserved>
+	       +','                    //TODO: description
+	       +','                    //fabric
+	       +','                    //origin
+	       +price + ','            //price
+	       +','                    //sale price
+	       +'61000,'               //tax code
+	       +att1 + ','             //attr 1
+	       +att2 + ','             //attr 2
+	       +','					   //attr 3
+	       +cat;			  	   //category name (last item of row)
+}
+
+function setError(message){
+	document.getElementById("error").innerHTML = message;
+}
+
+String.prototype.trim = function() {
+	return this.replace(/^\s+|\s+$/g,"");
+}
+
 function genCsvDoc(){
-    var csv = "";
-    
-    csv += 'H,Product SKU,Product Name,Vendor Name,Thumbnail Image Filename,Large Image Filename,<Reserved>,';
-    csv += 'Description,Fabric,Origin,Price,Sale Price,Tax Code,Defining Attribute 1,Defining Attribute 2,Defining Attribute 3,';
-    csv += 'Product Category Name,Item SKU,Parent SKU,'
-    csv += 'Defining Attribute 1,Defining Attribute 2,Visibility Indicator,Status,Availability Date';
+    var csv = titleRow;
     
     for(i = 0; i < count; i++){
 		csv += '<br />';
@@ -58,33 +82,55 @@ function genCsvDoc(){
         var cat = document.getElementById("category"+i).value;
         var att1 = document.getElementById("att1-"+i).value;
         var att2 = document.getElementById("att2-"+i).value;
+        var att1_name = '';
+        var att2_name = '';
+        var att1_vals = new Array();
+        var att2_vals = new Array();
+        
+        var re = /^(.*):(.*)/;
+        
+        if(att1.length > 0){
+			var att1_cap = re.exec(att1);
+			if(att1_cap != null){
+				att1_name = att1_cap[1];
+				att1_vals = att1_cap[2].split(',');
+			} else {
+				setError("Invalid Attribute 1");
+				return;
+			}
+		}
+		if(att2.length > 0){
+			var att2_cap = re.exec(att2);
+			if(att2_cap != null){
+				att2_name = att2_cap[1];
+				att2_vals = att2_cap[2].split(',');
+			} else {
+				setError("Invalid Attribute 2");
+				return;
+			}
+        }
     
-        csv += 'P,' + number + ',' + name + ',' + brand + ',';
-        csv += 'T' + number + '.jpg,'; //Thumbnail Image Filename
-        csv += number + '.jpg,';       //Large Image Filename
-        csv += 'L' + number + '.jpg,'; //<Reserved>
-        csv += ',';                    //TODO: description
-        csv += ',';                    //fabric
-        csv += ',';                    //origin
-        csv += price + ',';            //price
-        csv += ',';                    //sale price
-        csv += '61000,';               //tax code
-        csv += att1 + ',';             //attr 1
-        csv += att2 + ',';             //attr 2
-        csv += ',';					   //attr 3
-        csv += cat;			  		   //category name (last item of row)
-
-        for(j=0; j < 10; j++){
-			csv += '<br />';
-			
-			csv += "C,,,,,,,,,,,,,,,,,";
-			csv += number + '-' + att1 /*first letter*/+ att2 /*first letter*/ + ',' /*att3*/+',';
-			csv += number + ','; //parent sku
-			csv += att1 + ',' + att2 + ',' + /*att3*/ ',';
-			csv += 'Y,'; //Visibility Indicator, always true
-			csv += 'A'; //Status, always available (last item of row)
+        csv += getProductRow(name, brand, price, number, cat, att1_name, att2_name);
+        
+        document.getElementById("csvDoc").innerHTML = csv;
+		
+		if(att2_vals.length == 0){
+			att2_vals[0] = '';
+		}
+		
+        for(j=0; j < att1_vals.length; j++){
+			for (m=0; m < att2_vals.length; m++){
+				csv += '<br />'
+				+ "C,,,,,,,,,,,,,,,,,"
+				+ number + '-' + att1_vals[j].trim() + '-' + att2_vals[m].trim() + /*att3*/ ','
+				+ number + ',' //parent sku
+				+ att1_vals[j].trim() + ',' + att2_vals[m].trim() + ',' + /*att3*/ ','
+				+ 'Y,' //Visibility Indicator, always true
+				+ 'A'; //Status, always available (last item of row)
+			}
 		}
     }
+    setError('');
     document.getElementById("csvDoc").innerHTML = csv;
 }
 
@@ -98,6 +144,7 @@ function genCsvDoc(){
      <input type="button" value="Add another product" onClick="addRow('dynamicInput');">
      <br /><output onforminput="genCsvDoc()"></output>
 </form>
+<p id="error"></p>
 <p id="csvDoc"></p>
 
 </body>
