@@ -8,40 +8,28 @@ const titleRow = 'H,Product SKU,Product Name,Vendor Name,Thumbnail Image Filenam
     +'Defining Attribute 1,Defining Attribute 2,Defining Attribute 3,Visibility Indicator,Status,Availability Date';
 var count = 0;
 function addRow(divName){
-          var newdiv = document.createElement('div');
-          newdiv.innerHTML = "<br />"
-          + "<input type='text' id='name"+count+"'>"
-          + "<input type='text' id='brand"+count+"'>"
-          + "<input type='text' id='price"+count+"'>"
-          + "<input type='text' id='number"+count+"'>"
-          + "<input type='text' id='category"+count+"'>"
-          + "<input type='text' id='att1-"+count+"'>"
-          + "<input type='text' id='att2-"+count+"'>";
-          document.getElementById(divName).appendChild(newdiv);
-          count++;
+	  var tbl = document.getElementById(divName);
+	  
+	  //Add row to bottom of table
+	  var newRow = tbl.insertRow(tbl.rows.length);
+	  
+	  //Must add cells in reverse order, because they push each other right
+	  
+	  newRow.insertCell().innerHTML = "<input type='text' id='att2-"+count+"'></td>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='att1-"+count+"'>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='category"+count+"'>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='number"+count+"'>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='price"+count+"'>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='brand"+count+"'>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='name"+count+"'>";
+
+	  count++;
 }
 
-function product(name, price, number, atts){
-	/*string name       : Prin T
-	float price         : 19.00
-	string number       : 45EW3
-	array<string> atts  :  ["blue", "white"], ["s", "m", "l", "xl"]
-	*/
-	
-	this.name = name;
-	this.price = price;
-	this.number = number;
-	this.atts = atts;
-}
-var products = new Array();
-
-for(i=0; i<10; i++){
-	products[i] = new product("Name"+i, 100.95+i, "45EW"+i, ["medium", "large"]);
-}
-
-for(p in products){
-	//document.write(products[p].name + " " + products[p].price + " "
-	 //+ products[p].number + " " + products[p].atts + "<br />");
+function delRow(divName){
+  var tbl = document.getElementById(divName);
+  var lastRow = tbl.rows.length;
+  if (lastRow > 1) tbl.deleteRow(lastRow - 1);
 }
 
 function getProductRow(name, brand, price, number, cat, att1, att2){
@@ -87,7 +75,7 @@ function genCsvDoc(){
         var att1_vals = new Array();
         var att2_vals = new Array();
         
-        var re = /^(.*):(.*)/;
+        var re = /(.*?):(.*)/;
         
         if(att1.length > 0){
 			var att1_cap = re.exec(att1);
@@ -95,7 +83,7 @@ function genCsvDoc(){
 				att1_name = att1_cap[1];
 				att1_vals = att1_cap[2].split(',');
 			} else {
-				setError("Invalid Attribute 1");
+				setError("Invalid Attribute 1 '"+att1+"'.  Ex: Color: White, Navy, Rainbow");
 				return;
 			}
 		}
@@ -105,7 +93,7 @@ function genCsvDoc(){
 				att2_name = att2_cap[1];
 				att2_vals = att2_cap[2].split(',');
 			} else {
-				setError("Invalid Attribute 2");
+				setError("Invalid Attribute 2 '"+att2+"'.  Ex: Color: White, Navy, Rainbow");
 				return;
 			}
         }
@@ -138,10 +126,11 @@ function genCsvDoc(){
 </script>
 
 <form method="POST">
-    <pre>        Name           Brand               Price             Product Number       Category         Attribute 1         Attribute 2</pre>
-		 <div id="dynamicInput">
-		 </div>
+    <table id=dynamicInput><tr>
+		<td>Name</td><td>Brand</td><td>Price</td><td>Product Number</td><td>Category</td><td>Attribute 1</td><td>Attribute 2</td>
+    </tr></table>
      <input type="button" value="Add another product" onClick="addRow('dynamicInput');">
+     <input type="button" value="Remove last product" onClick="delRow('dynamicInput');">
      <br /><output onforminput="genCsvDoc()"></output>
 </form>
 <p id="error"></p>
