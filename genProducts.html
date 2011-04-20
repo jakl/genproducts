@@ -2,10 +2,22 @@
 <body>
 <script type="text/javascript">
 <!--
-const titleRow = 'H,Product SKU,Product Name,Vendor Name,Thumbnail Image Filename,Large Image Filename,<Reserved>,'
+       //Make note that the <Reserved> column heading is HTML encoded with &lt and &gt
+       //When this file is saved, it must be decrypted
+const titleRow = 'H,Product SKU,Product Name,Vendor Name,Thumbnail Image Filename,Large Image Filename,&ltReserved&gt,'
     +'Description,Fabric,Origin,Price,Sale Price,Tax Code,Defining Attribute 1,Defining Attribute 2,Defining Attribute 3,'
     +'Product Category Name,Item SKU,Parent SKU,'
     +'Defining Attribute 1,Defining Attribute 2,Defining Attribute 3,Visibility Indicator,Status,Availability Date';
+    
+    //Not used to make saving the file easier; It is easier to not work with HTML tags in a csv doc
+const titleTableRow = '<tr><td>H,</td><td>Product SKU,</td><td>Product Name,</td><td>Vendor Name,'
+    +'</td><td>Thumbnail Image Filename,</td><td>Large Image Filename,</td><td>&ltReserved&gt,</td><td>'
+    +'Description,</td><td>Fabric,</td><td>Origin,</td><td>Price,</td><td>Sale Price,'
+    +'</td><td>Tax Code,</td><td>Defining Attribute 1,</td><td>Defining Attribute 2,</td><td>Defining Attribute 3,</td><td>'
+    +'Product Category Name,</td><td>Item SKU,</td><td>Parent SKU,</td><td>'
+    +'Defining Attribute 1,</td><td>Defining Attribute 2,</td><td>Defining Attribute 3,</td><td>'
+    +'Visibility Indicator,</td><td>Status,</td><td>Availability Date</td></tr>';
+    
 var count = 0;
 function addRow(divName){
 	  var tbl = document.getElementById(divName);
@@ -15,7 +27,7 @@ function addRow(divName){
 	  
 	  //Must add cells in reverse order, because they push each other right
 	  
-	  newRow.insertCell().innerHTML = "<input type='text' id='att2-"+count+"'></td>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='att2-"+count+"'>";
 	  newRow.insertCell().innerHTML = "<input type='text' id='att1-"+count+"'>";
 	  newRow.insertCell().innerHTML = "<input type='text' id='category"+count+"'>";
 	  newRow.insertCell().innerHTML = "<input type='text' id='number"+count+"'>";
@@ -29,7 +41,48 @@ function addRow(divName){
 function delRow(divName){
   var tbl = document.getElementById(divName);
   var lastRow = tbl.rows.length;
-  if (lastRow > 1) tbl.deleteRow(lastRow - 1);
+  if (lastRow > 1){
+	   tbl.deleteRow(lastRow - 1);
+	   count--;
+   }
+   genCsvDoc();
+}
+
+function save(divName){
+	/*
+   Provide the XMLHttpRequest constructor for IE 5.x-6.x:
+   Other browsers (including IE 7.x-9.x) do not redefine
+   XMLHttpRequest if it already exists.
+ 
+   This example is based on findings at:
+   http://blogs.msdn.com/xmlteam/archive/2006/10/23/using-the-right-version-of-msxml-in-internet-explorer.aspx
+*/
+if (typeof XMLHttpRequest == "undefined")
+  XMLHttpRequest = function () {
+    try { return new ActiveXObject("Msxml2.XMLHTTP.6.0"); }
+      catch (e) {}
+    try { return new ActiveXObject("Msxml2.XMLHTTP.3.0"); }
+      catch (e) {}
+    try { return new ActiveXObject("Msxml2.XMLHTTP"); }
+      catch (e) {}
+    //Microsoft.XMLHTTP points to Msxml2.XMLHTTP.3.0 and is redundant
+    throw new Error("This browser does not support XMLHttpRequest.");
+  };
+  
+	var url = "save.php";
+	var csvDoc = document.getElementById(divName).innerHTML;
+	http = new ActiveXObject("Msxml2.XMLHTTP.6.0");
+	http.open("POST", url, true);
+
+	//Send the proper header information along with the request
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+	http.onreadystatechange = function() {//Call a function when the state changes.
+		if(http.readyState == 4 && http.status == 200) {
+			alert(http.responseText);
+		}
+	}
+	http.send('{"data":"'+csvDoc+'"}');
 }
 
 function getProductRow(name, brand, price, number, cat, att1, att2){
@@ -61,7 +114,7 @@ function genCsvDoc(){
     var csv = titleRow;
     
     for(i = 0; i < count; i++){
-		csv += '<br />';
+		csv += "\n";
 		
 		var name = document.getElementById("name"+i).value;
         var brand = document.getElementById("brand"+i).value;
@@ -108,7 +161,7 @@ function genCsvDoc(){
 		
         for(j=0; j < att1_vals.length; j++){
 			for (m=0; m < att2_vals.length; m++){
-				csv += '<br />'
+				csv += "\n"
 				+ "C,,,,,,,,,,,,,,,,,"
 				+ number + '-' + att1_vals[j].trim() + '-' + att2_vals[m].trim() + /*att3*/ ','
 				+ number + ',' //parent sku
@@ -122,6 +175,8 @@ function genCsvDoc(){
     document.getElementById("csvDoc").innerHTML = csv;
 }
 
+
+
 //-->
 </script>
 
@@ -131,10 +186,11 @@ function genCsvDoc(){
     </tr></table>
      <input type="button" value="Add another product" onClick="addRow('dynamicInput');">
      <input type="button" value="Remove last product" onClick="delRow('dynamicInput');">
+     <input type="button" value="Save" onClick="save('csvDoc');">
      <br /><output onforminput="genCsvDoc()"></output>
 </form>
 <p id="error"></p>
-<p id="csvDoc"></p>
+<pre><p id="csvDoc"></p></pre>
 
 </body>
 </html>
