@@ -27,11 +27,13 @@ function addRow(divName){
 	  
 	  //Must add cells in reverse order, because they push each other right
 	  
+	  newRow.insertCell().innerHTML = "<input type='text' id='description"+count+"'>";
 	  newRow.insertCell().innerHTML = "<input type='text' id='att2-"+count+"'>";
 	  newRow.insertCell().innerHTML = "<input type='text' id='att1-"+count+"'>";
 	  newRow.insertCell().innerHTML = "<input type='text' id='category"+count+"'>";
-	  newRow.insertCell().innerHTML = "<input type='text' id='number"+count+"'>";
-	  newRow.insertCell().innerHTML = "<input type='text' id='price"+count+"'>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='number"+count+"' size=8>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='saleprice"+count+"' size=6>";
+	  newRow.insertCell().innerHTML = "<input type='text' id='price"+count+"' size=6>";
 	  newRow.insertCell().innerHTML = "<input type='text' id='brand"+count+"'>";
 	  newRow.insertCell().innerHTML = "<input type='text' id='name"+count+"'>";
 
@@ -85,16 +87,16 @@ if (typeof XMLHttpRequest == "undefined")
 	http.send('{"data":"'+csvDoc+'"}');
 }
 
-function getProductRow(name, brand, price, number, cat, att1, att2){
+function getProductRow(name, brand, price, saleprice, number, cat, att1, att2, description){
 	return 'P,' + number + ',' + name + ',' + brand + ','
 	       +'T' + number + '.jpg,' //Thumbnail Image Filename
 	       +number + '.jpg,'       //Large Image Filename
 	       +'L' + number + '.jpg,' //<Reserved>
-	       +','                    //TODO: description
+	       +description + ','      //description
 	       +','                    //fabric
 	       +','                    //origin
 	       +price + ','            //price
-	       +','                    //sale price
+	       +saleprice + ','                    //sale price
 	       +'61000,'               //tax code
 	       +att1 + ','             //attr 1
 	       +att2 + ','             //attr 2
@@ -119,10 +121,12 @@ function genCsvDoc(){
 		var name = document.getElementById("name"+i).value;
         var brand = document.getElementById("brand"+i).value;
         var price = document.getElementById("price"+i).value;
+        var saleprice = document.getElementById("saleprice"+i).value;
         var number = document.getElementById("number"+i).value;
         var cat = document.getElementById("category"+i).value;
         var att1 = document.getElementById("att1-"+i).value;
         var att2 = document.getElementById("att2-"+i).value;
+        var description = document.getElementById("description"+i).value;
         var att1_name = '';
         var att2_name = '';
         var att1_vals = new Array();
@@ -151,7 +155,7 @@ function genCsvDoc(){
 			}
         }
     
-        csv += getProductRow(name, brand, price, number, cat, att1_name, att2_name);
+        csv += getProductRow(name, brand, price, saleprice, number, cat, att1_name, att2_name, description);
         
         document.getElementById("csvDoc").innerHTML = csv;
 		
@@ -181,8 +185,8 @@ function genCsvDoc(){
 </script>
 
 <form method="POST">
-    <table id=dynamicInput><tr>
-		<td>Name</td><td>Brand</td><td>Price</td><td>Product Number</td><td>Category</td><td>Attribute 1</td><td>Attribute 2</td>
+    <table id=dynamicInput width=100%><tr>
+		<td>Name</td><td>Brand</td><td>Price</td><td>Sale Price</td><td>Product Number</td><td>Category</td><td>Attribute 1</td><td>Attribute 2</td><td>Description</td>
     </tr></table>
      <input type="button" value="Add another product" onClick="addRow('dynamicInput');">
      <input type="button" value="Remove last product" onClick="delRow('dynamicInput');">
