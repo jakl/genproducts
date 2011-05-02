@@ -1,5 +1,6 @@
 <html>
 <body>
+	<script src="ajax.js"></script>
 <script type="text/javascript">
 <!--
        //Make note that the <Reserved> column heading is HTML encoded with &lt and &gt
@@ -50,7 +51,7 @@ function delRow(divName){
    genCsvDoc();
 }
 
-function save(divName){
+function save2(divName){
 	/*
    Provide the XMLHttpRequest constructor for IE 5.x-6.x:
    Other browsers (including IE 7.x-9.x) do not redefine
@@ -86,6 +87,12 @@ if (typeof XMLHttpRequest == "undefined")
 	}
 	http.send('{"data":"'+csvDoc+'"}');
 }
+
+function save(divName){
+	http('POST', 'save.php', ajax_response, document.getElementById(divName).innerHTML);
+}
+
+function ajax_response(){}
 
 function getProductRow(name, brand, price, saleprice, number, cat, att1, att2, description){
 	return 'P,' + number + ',' + name + ',' + brand + ','
